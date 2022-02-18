@@ -9,27 +9,58 @@ const FILE_TYPE_MAP = {
   "image/png": "png",
   "image/jpeg": "jpeg",
   "image/jpg": "jpg",
+  "application/pdf": "pdf",
+  "application/epub+zip": "epub",
 };
 
 // multer upload configuration with  associated images
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const isValid = FILE_TYPE_MAP[file.mimetype];
-    let uploadError = new Error("invalid image type");
+    let uploadError = new Error("invalid document type");
 
     if (isValid) {
       uploadError = null;
+
+      if (file.fieldname === "document") {
+        cb(uploadError, "public/uploads/docs");
+      } else if (file.fieldname === "image") {
+        cb(uploadError, "public/uploads");
+      }
     }
-    cb(uploadError, "public/uploads");
   },
   filename: function (req, file, cb) {
-    const fileName = file.originalname.split(" ").join("-");
     const extension = FILE_TYPE_MAP[file.mimetype];
+    // const fileName = file.originalname.split(" ").join("-");
+    const fileName = file.originalname.split(".")[0].split(" ").join("-");
     cb(null, `${fileName}-${Date.now()}.${extension}`);
   },
 });
 
-const uploadOptions = multer({ storage: storage });
+const filter = (req, file, cb) => {
+  if (file.fieldname === "document") {
+    if (
+      file.mimetype === "application/pdf" ||
+      file.mimetype === "application/epub+zip"
+    ) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  } else if (file.fieldname === "image") {
+    if (
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/jpeg" ||
+      file.mimetype === "image/jpg"
+    ) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  }
+};
+
+const uploadOptions = multer({ storage: storage, fileFilter: filter });
 
 // GET route to retrieve all projects from the database
 router.get(`/`, async (req, res) => {
@@ -58,34 +89,59 @@ router.get(`/:id`, async (req, res) => {
 });
 
 // POST route to upload new projects with associated images to the database
-router.post(`/`, uploadOptions.single("image"), async (req, res) => {
-  const category = await Category.findById(req.body.category);
-  if (!category) return res.status(400).send("Invalid Category");
+// router.post(`/`, uploadOptions.single("image"), async (req, res) => {
+router.post(
+  `/`,
+  uploadOptions.fields([
+    { name: "image", maxCount: 1 },
+    { name: "document", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    const category = await Category.findById(req.body.category);
+    if (!category) return res.status(400).send("Invalid Category");
 
-  const file = req.file;
-  if (!file) return res.status(400).send("No image in the request");
+    // const author = await User.findById(req.body.author);
+    // if (!author) return res.status(400).send("Author does not exist");
 
-  const fileName = file.filename;
-  const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
-  let project = new Project({
-    name: req.body.name,
-    description: req.body.description,
-    introduction: req.body.introduction,
-    abstract: req.body.abstract,
-    image: `${basePath}${fileName}`, // "http://localhost:3000/public/upload/image-2323232"
-    category: req.body.category,
-    rating: req.body.rating,
-    numReviews: req.body.numReviews,
-    isFeatured: req.body.isFeatured,
-    // FIXME add document/pdf body parameter
-  });
+    const file = req.files ? req.files : req.file;
+    if (!file) return res.status(400).send("No image in the request");
+    const fileLength = Object.keys(file).length;
 
-  project = await project.save();
+    let imageFileName;
+    let documentFileName;
 
-  if (!project) return res.status(500).send("The project cannot be created");
+    if (file.document) {
+      documentFileName = file.document[0].filename;
+    }
 
-  res.send(project);
-});
+    if (file.image) {
+      imageFileName = file.image[0].filename;
+    }
+
+    const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+
+    let project = new Project({
+      name: req.body.name,
+      description: req.body.description,
+      introduction: req.body.introduction,
+      author: req.body.author,
+      abstract: req.body.abstract,
+      image: imageFileName ? `${basePath}${imageFileName}` : "", // "http://localhost:3000/public/upload/image-2323232"
+      document: documentFileName ? `${basePath}docs/${documentFileName}` : "", // "http://localhost:3000/public/upload/docs/doc-2323232"
+      category: req.body.category,
+      rating: req.body.rating,
+      numReviews: req.body.numReviews,
+      isFeatured: req.body.isFeatured,
+      // FIXME add document/pdf body parameter
+    });
+
+    project = await project.save();
+
+    if (!project) return res.status(500).send("The project cannot be created");
+
+    res.send(project);
+  }
+);
 
 // PUT route to update an existing project with associated :id
 router.put("/:id", async (req, res) => {
@@ -103,6 +159,7 @@ router.put("/:id", async (req, res) => {
       introduction: req.body.introduction,
       abstract: req.body.abstract,
       image: req.body.image,
+      document: req.body.document,
       category: req.body.category,
       rating: req.body.rating,
       numReviews: req.body.numReviews,
