@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const productSchema = mongoose.Schema({
+const projectSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -9,7 +9,15 @@ const productSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  richDescription: {
+  introduction: {
+    type: String,
+    default: "",
+  },
+  abstract: {
+    type: String,
+    default: "",
+  },
+  document: {
     type: String,
     default: "",
   },
@@ -22,24 +30,10 @@ const productSchema = mongoose.Schema({
       type: String,
     },
   ],
-  brand: {
-    type: String,
-    default: "",
-  },
-  price: {
-    type: Number,
-    default: 0,
-  },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
     required: true,
-  },
-  countInStock: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 255,
   },
   rating: {
     type: Number,
@@ -49,22 +43,18 @@ const productSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  isFeatured: {
-    type: Boolean,
-    default: false,
-  },
   dateCreated: {
     type: Date,
     default: Date.now,
   },
 });
 
-productSchema.virtual("id").get(function () {
+projectSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });
 
-productSchema.set("toJSON", {
+projectSchema.set("toJSON", {
   virtuals: true,
 });
 
-exports.Product = mongoose.model("Product", productSchema);
+exports.Project = mongoose.model("Project", projectSchema);
