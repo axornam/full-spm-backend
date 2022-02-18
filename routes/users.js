@@ -32,7 +32,7 @@ router.post("/", async (req, res) => {
     phone: req.body.phone,
     isAdmin: req.body.isAdmin,
     street: req.body.street,
-    apartment: req.body.apartment,
+    department: req.body.department,
     zip: req.body.zip,
     city: req.body.city,
     country: req.body.country,
