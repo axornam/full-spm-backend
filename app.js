@@ -20,23 +20,21 @@ app.use(errorHandler);
 
 //Routes
 const categoriesRoutes = require("./routes/categories");
-const productsRoutes = require("./routes/products");
+const projectsRoutes = require("./routes/projects");
 const usersRoutes = require("./routes/users");
-const ordersRoutes = require("./routes/orders");
 
-const api = process.env.API_URL;
+const api = process.env.API_URL || "http://localhost:3000";
 
 app.use(`${api}/categories`, categoriesRoutes);
-app.use(`${api}/products`, productsRoutes);
+app.use(`${api}/projects`, projectsRoutes);
 app.use(`${api}/users`, usersRoutes);
-app.use(`${api}/orders`, ordersRoutes);
 
 //Database
 mongoose
   .connect(process.env.CONNECTION_STRING, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    dbName: "eshop-database",
+    dbName: "projects-database",
   })
   .then(() => {
     console.log("Database Connection is ready...");
