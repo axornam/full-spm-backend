@@ -38,6 +38,7 @@ router.get(`/`, async (req, res) => {
     filter = { category: req.query.categories.split(",") };
   }
 
+  // const projectList = await Project.find(filter);
   const projectList = await Project.find(filter).populate("category");
 
   if (!projectList) {
@@ -106,7 +107,7 @@ router.put("/:id", async (req, res) => {
       rating: req.body.rating,
       numReviews: req.body.numReviews,
       isFeatured: req.body.isFeatured,
-    // FIXME add document/pdf body parameter
+      // FIXME add document/pdf body parameter
     },
     { new: true }
   );

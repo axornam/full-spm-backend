@@ -23,15 +23,16 @@ const categoriesRoutes = require("./routes/categories");
 const projectsRoutes = require("./routes/projects");
 const usersRoutes = require("./routes/users");
 
-const api = process.env.API_URL || "http://localhost:3000";
+const api = process.env.API_URL;
 
 app.use(`${api}/categories`, categoriesRoutes);
 app.use(`${api}/projects`, projectsRoutes);
 app.use(`${api}/users`, usersRoutes);
+// http://localhost:3000/api/v1/users
 
 //Database
 mongoose
-  .connect(process.env.CONNECTION_STRING, {
+  .connect(process.env.DB_CONNECTION_STRING, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     dbName: "projects-database",

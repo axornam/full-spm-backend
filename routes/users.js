@@ -4,6 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// GET route for admins to retrieve all uses allowed on the application
 router.get(`/`, async (req, res) => {
   const userList = await User.find().select("-passwordHash");
 
@@ -13,6 +14,7 @@ router.get(`/`, async (req, res) => {
   res.send(userList);
 });
 
+// GET route for admins to retrive a user with associated :id
 router.get("/:id", async (req, res) => {
   const user = await User.findById(req.params.id).select("-passwordHash");
 
@@ -24,6 +26,8 @@ router.get("/:id", async (req, res) => {
   res.status(200).send(user);
 });
 
+
+// POST route for admins to create a users
 router.post("/", async (req, res) => {
   let user = new User({
     name: req.body.name,
@@ -31,11 +35,7 @@ router.post("/", async (req, res) => {
     passwordHash: bcrypt.hashSync(req.body.password, 10),
     phone: req.body.phone,
     isAdmin: req.body.isAdmin,
-    street: req.body.street,
     department: req.body.department,
-    zip: req.body.zip,
-    city: req.body.city,
-    country: req.body.country,
   });
   user = await user.save();
 
@@ -44,6 +44,7 @@ router.post("/", async (req, res) => {
   res.send(user);
 });
 
+// PUT route for admins to update an existing user details
 router.put("/:id", async (req, res) => {
   const userExist = await User.findById(req.params.id);
   let newPassword;
@@ -61,11 +62,7 @@ router.put("/:id", async (req, res) => {
       passwordHash: newPassword,
       phone: req.body.phone,
       isAdmin: req.body.isAdmin,
-      street: req.body.street,
-      apartment: req.body.apartment,
-      zip: req.body.zip,
-      city: req.body.city,
-      country: req.body.country,
+      department: req.body.department,
     },
     { new: true }
   );
@@ -75,9 +72,10 @@ router.put("/:id", async (req, res) => {
   res.send(user);
 });
 
+// POST route for general login
 router.post("/login", async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
-  const secret = process.env.secret;
+  const secret = process.env.SECRET;
   if (!user) {
     return res.status(400).send("The user not found");
   }
@@ -94,22 +92,20 @@ router.post("/login", async (req, res) => {
 
     res.status(200).send({ user: user.email, token: token });
   } else {
-    res.status(400).send("password is wrong!");
+    res.status(400).send("email or password is wrong!");
   }
 });
 
+// POST route for general registration
 router.post("/register", async (req, res) => {
+  console.log("registering a new user")
   let user = new User({
     name: req.body.name,
     email: req.body.email,
     passwordHash: bcrypt.hashSync(req.body.password, 10),
     phone: req.body.phone,
     isAdmin: req.body.isAdmin,
-    street: req.body.street,
-    apartment: req.body.apartment,
-    zip: req.body.zip,
-    city: req.body.city,
-    country: req.body.country,
+    department: req.body.department,
   });
   user = await user.save();
 
@@ -118,6 +114,7 @@ router.post("/register", async (req, res) => {
   res.send(user);
 });
 
+// DELETE route for admins to remove a users with associated :id
 router.delete("/:id", (req, res) => {
   User.findByIdAndRemove(req.params.id)
     .then((user) => {
@@ -136,6 +133,7 @@ router.delete("/:id", (req, res) => {
     });
 });
 
+// GET route for admins to retrieve general count of created users
 router.get(`/get/count`, async (req, res) => {
   const userCount = await User.countDocuments((count) => count);
 
