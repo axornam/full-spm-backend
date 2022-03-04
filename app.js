@@ -25,13 +25,14 @@ const usersRoutes = require("./routes/users");
 
 const api = process.env.API_URL;
 
-app.use(`/`, (req, res, err) => res.send("hello world"));
+app.get(`/`, (req, res, err) => res.send("hello world"));
 app.use(`${api}/categories`, categoriesRoutes);
 app.use(`${api}/projects`, projectsRoutes);
 app.use(`${api}/users`, usersRoutes);
 // http://localhost:3000/api/v1/users
 
 let connectionString = "";
+const port = process.env.PORT || 3000;
 
 if (process.env.ENV === "dev")
   connectionString = process.env.DB_CONNECTION_STRING;
@@ -59,6 +60,6 @@ mongoose
   });
 
 //Server
-app.listen(3000, () => {
+app.listen(port, () => {
   console.log("server is running http://localhost:3000");
 });
