@@ -32,11 +32,16 @@ app.use(`${api}/users`, usersRoutes);
 
 //Database
 mongoose
-  .connect(process.env.DB_CONNECTION_STRING, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    dbName: "projects-database",
-  })
+  .connect(
+    process.env.ENV == "dev"
+      ? process.env.DB_CONNECTION_STRING
+      : process.env.PROD_DB_CONNECTION_STRING,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      dbName: "projects-database",
+    }
+  )
   .then(() => {
     console.log("Database Connection is ready...");
   })
